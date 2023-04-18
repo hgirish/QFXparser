@@ -163,7 +163,11 @@ namespace QFXparser
                                 property.SetValue(_statement, ConvertQfxType(token.Content, property.PropertyType));
                                 break;
                             case "RawTransaction":
-                                property.SetValue(_currentTransaction, ConvertQfxType(token.Content, property.PropertyType));
+                                if (_currentTransaction != null)
+                                {
+                                    property.SetValue(_currentTransaction, ConvertQfxType(token.Content, property.PropertyType));
+                                }
+
                                 break;
                             case "RawLedgerBalance":
                                 property.SetValue(_ledgerBalance, ConvertQfxType(token.Content, property.PropertyType));
