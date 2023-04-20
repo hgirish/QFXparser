@@ -1,13 +1,14 @@
 ﻿using Newtonsoft.Json;
-using QFXparser;
 using System;
 using System.IO;
 
-namespace QFXparser.TestApp {
+namespace QFXparser.TestApp
+{
     class Program {
         static void Main (string[] args) {
+            Console.WriteLine(  args);
             Console.Write("Type the path of the file you would like to upload: ");
-            string qfxpath = Console.ReadLine();//Directory.GetParent("ofx.qbo").Parent.FullName + "\\Files\\ofx.qbo";
+            string qfxpath = @"D:\downloads\bofa.qfx";// Console.ReadLine();//Directory.GetParent("ofx.qbo").Parent.FullName + "\\Files\\ofx.qbo";
             Stream stream = new FileStream(qfxpath, FileMode.Open);
             FileParser parser = new FileParser(stream);
 

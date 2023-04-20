@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Company>emaquest.net</Company>
     <Product>QFXparser</Product>
-    <PackageId>QFXparser</PackageId>
+    <PackageId>GH.QFXparser</PackageId>
     <Authors>Emanuele Ramella-Paia</Authors>
     <Description>Simple parser for .qfx and .qbo files.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -13,7 +13,7 @@
     <RepositoryUrl>https://github.com/eramella/QFXparser</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
     <PackageTags>qfx, financial, parser, quickbooks, dotnet, netstandard2, qbo</PackageTags>
-    <Version>1.3.0</Version>
+    <Version>1.3.2</Version>
     <PackageReleaseNotes>See Changelog:
 https://github.com/eramella/QFXparser/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <NeutralLanguage>en-US</NeutralLanguage>

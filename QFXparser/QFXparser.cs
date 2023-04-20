@@ -11,7 +11,8 @@ namespace QFXparser
         private string _fileText;
         private RawLedgerBalance _ledgerBalance;
         private readonly CultureInfo _cultureInfo = CultureInfo.CurrentCulture;
-
+        bool isRawTransaction = false;
+        bool isRawReinvestTransaction = false;
         /// <summary>
         /// Initialize a FileParser with UTF-8 encoding and
         /// current culture info.
@@ -81,6 +82,25 @@ namespace QFXparser
                 };
                 statement.Transactions.Add(trans);
             }
+            foreach (var rawReinvest in rawStatement.ReinvTransactions)
+            {
+                //RawInvestTransaction investTransaction = rawReinvest.InvestTransaction;
+                ReinvestTransaction reinvest = new ReinvestTransaction
+                {
+                    SettleDate = rawReinvest.SettleDate,
+                    TradeDate = rawReinvest.TradeDate,
+                    TransactionId = rawReinvest.TransactionId,                    
+                    SubType = rawReinvest.SubType,
+                    Total = rawReinvest.Total,
+                    UnitPrice = rawReinvest.UnitPrice,
+                    Units = rawReinvest.Units,
+                    UniqueId = rawReinvest.UniqueId,
+                    IncomeType = rawReinvest.IncomeType,
+                    UniqueIdType = rawReinvest.UniqueIdType,
+
+                };
+                statement.ReinvestTransactions.Add(reinvest);
+            }
 
             statement.LedgerBalance = new LedgerBalance
             {
@@ -96,12 +116,23 @@ namespace QFXparser
             RawStatement _statement = null;
             MemberInfo currentMember = null;
             RawTransaction _currentTransaction = null;
-
+            RawReinvestTransaction rawReinvestTransaction = null;
+           
             foreach (var token in Parser.Parse(_fileText))
             {
                 if (token.IsElement)
                 {
-                    var result = GetPropertyInfo(token.Content);
+                    if (token.Content == "BANKTRANLIST")
+                    {
+                        isRawReinvestTransaction = false;
+                        isRawTransaction = true;
+                    }
+                    if (token.Content == "INVTRANLIST")
+                    {
+                        isRawReinvestTransaction = true;
+                        isRawTransaction = false;
+                    }
+                    var result = GetPropertyInfo(token.Content, isRawTransaction, isRawReinvestTransaction);
                     if (result != null)
                     {
                         switch (result.Type)
@@ -114,10 +145,19 @@ namespace QFXparser
                                 break;
                             case NodeType.TransactionOpen:
                                 _currentTransaction = new RawTransaction();
+                               
                                 break;
                             case NodeType.TransactionClose:
                                 _statement.Transactions.Add(_currentTransaction);
                                 _currentTransaction = null;
+                                break;
+                            case NodeType.ReinvestTransactionOpen:
+                                rawReinvestTransaction = new RawReinvestTransaction();
+                              
+                                break;
+                            case NodeType.ReinvestTransactionClose:
+                                _statement.ReinvTransactions.Add(rawReinvestTransaction);
+                                rawReinvestTransaction = null;
                                 break;
                             case NodeType.StatementProp:
                                 if (_statement == null)
@@ -127,6 +167,9 @@ namespace QFXparser
                                 currentMember = result.Member;
                                 break;
                             case NodeType.TransactionProp:
+                                currentMember = result.Member;
+                                break;
+                            case NodeType.ReinvestTransactionProp:
                                 currentMember = result.Member;
                                 break;
                             case NodeType.LedgerBalanceOpen:
@@ -169,6 +212,13 @@ namespace QFXparser
                                 }
 
                                 break;
+                            case "RawReinvestTransaction":
+                                if (rawReinvestTransaction != null)
+                                {
+                                    property.SetValue(rawReinvestTransaction, ConvertQfxType(token.Content, property.PropertyType));
+                                }
+
+                                break;
                             case "RawLedgerBalance":
                                 property.SetValue(_ledgerBalance, ConvertQfxType(token.Content, property.PropertyType));
                                 break;
@@ -203,7 +253,7 @@ namespace QFXparser
             return result;
         }
 
-        private PropertyResult GetPropertyInfo(string token)
+        private PropertyResult GetPropertyInfo(string token, bool isRawTransaction, bool isRawReinvestTransaction)
         {
             var propertyResult = new PropertyResult();
 
@@ -214,11 +264,23 @@ namespace QFXparser
                 return propertyResult;
             }
 
-            if (typeof(RawTransaction).GetCustomAttribute<NodeNameAttribute>().CloseTag == token)
+            if (isRawTransaction)
             {
-                propertyResult.Member = typeof(RawTransaction);
-                propertyResult.Type = NodeType.TransactionClose;
-                return propertyResult;
+                if (typeof(RawTransaction).GetCustomAttribute<NodeNameAttribute>().CloseTag == token)
+                {
+                    propertyResult.Member = typeof(RawTransaction);
+                    propertyResult.Type = NodeType.TransactionClose;
+                    return propertyResult;
+                } 
+            }
+            if (isRawReinvestTransaction)
+            {
+                if (typeof(RawReinvestTransaction).GetCustomAttribute<NodeNameAttribute>().CloseTag == token)
+                {
+                    propertyResult.Member = typeof(RawReinvestTransaction);
+                    propertyResult.Type = NodeType.ReinvestTransactionClose;
+                    return propertyResult;
+                } 
             }
 
             if (typeof(RawStatement).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
@@ -228,13 +290,24 @@ namespace QFXparser
                 return propertyResult;
             }
 
-            if (typeof(RawTransaction).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
+            if (isRawTransaction)
             {
-                propertyResult.Member = typeof(RawTransaction);
-                propertyResult.Type = NodeType.TransactionOpen;
-                return propertyResult;
+                if (typeof(RawTransaction).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
+                {
+                    propertyResult.Member = typeof(RawTransaction);
+                    propertyResult.Type = NodeType.TransactionOpen;
+                    return propertyResult;
+                } 
             }
-
+            if (isRawReinvestTransaction)
+            {
+                if (typeof(RawReinvestTransaction).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
+                {
+                    propertyResult.Member = typeof(RawReinvestTransaction);
+                    propertyResult.Type = NodeType.ReinvestTransactionOpen;
+                    return propertyResult;
+                } 
+            }
             if (typeof(RawLedgerBalance).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
             {
                 propertyResult.Member = typeof(RawLedgerBalance);
@@ -258,14 +331,30 @@ namespace QFXparser
                 return propertyResult;
             }
 
-            var transactionMember = typeof(RawTransaction).GetProperties().Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
-                .FirstOrDefault(m => m.GetCustomAttribute<NodeNameAttribute>().OpenTag == token);
-
-            if (transactionMember != null)
+            if (isRawTransaction || !isRawReinvestTransaction)
             {
-                propertyResult.Member = transactionMember;
-                propertyResult.Type = NodeType.TransactionProp;
-                return propertyResult;
+                var transactionMember = typeof(RawTransaction).GetProperties().Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
+                 .FirstOrDefault(m => m.GetCustomAttribute<NodeNameAttribute>().OpenTag == token);
+
+                if (transactionMember != null)
+                {
+                    propertyResult.Member = transactionMember;
+                    propertyResult.Type = NodeType.TransactionProp;
+                    return propertyResult;
+                } 
+            }
+            if (isRawReinvestTransaction || !isRawTransaction)
+            {
+                var reinvestTransactionMember = typeof(RawReinvestTransaction).GetProperties()
+                        .Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
+                       .FirstOrDefault(m => m.GetCustomAttribute<NodeNameAttribute>().OpenTag == token);
+
+                if (reinvestTransactionMember != null)
+                {
+                    propertyResult.Member = reinvestTransactionMember;
+                    propertyResult.Type = NodeType.ReinvestTransactionProp;
+                    return propertyResult;
+                } 
             }
 
             var balanceMember = typeof(RawLedgerBalance).GetProperties().Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
