@@ -50,7 +50,7 @@ namespace QFXparser
         [NodeName("UNITPRICE")]
         public decimal UnitPrice { get; set; }
         [NodeName("UNIQUEID")]
-        public int UniqueId { get; set; }
+        public string UniqueId { get; set; }
         [NodeName("UNIQUEIDTYPE")]
         public string UniqueIdType { get; set; }
 
@@ -66,6 +66,26 @@ namespace QFXparser
         [NodeName("DTSETTLE")]
         public DateTime SettleDate { get; set; }
 
+    }
+    [NodeName("MFINFO", "/MFINFO")]
+    internal class RawSecurity
+    {
+        [NodeName("UNITPRICE")]
+        public decimal UnitPrice { get; set; }
+        [NodeName("UNIQUEID")]
+        public string UniqueId { get; set; }
+        [NodeName("UNIQUEIDTYPE")]
+        public string UniqueIdType { get; set; }
+        [NodeName("FIID")]
+        public string FiId { get; set; }
+        [NodeName("SECNAME")]
+        public string Name { get; set; }
+        [NodeName("TICKER")]
+        public string Ticker { get; set; }
+        [NodeName("MEMO")]
+        public string Memo { get; set; }
+        [NodeName("MFTYPE")]
+        public string FundType { get; set; }
     }
 
 }

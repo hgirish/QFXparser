@@ -8,7 +8,7 @@ namespace QFXparser.TestApp
         static void Main (string[] args) {
             Console.WriteLine(  args);
             Console.Write("Type the path of the file you would like to upload: ");
-            string qfxpath = @"D:\downloads\bofa.qfx";// Console.ReadLine();//Directory.GetParent("ofx.qbo").Parent.FullName + "\\Files\\ofx.qbo";
+            string qfxpath = @"D:\downloads\OfxDownload.qfx";// Console.ReadLine();//Directory.GetParent("ofx.qbo").Parent.FullName + "\\Files\\ofx.qbo";
             Stream stream = new FileStream(qfxpath, FileMode.Open);
             FileParser parser = new FileParser(stream);
 

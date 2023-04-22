@@ -29,7 +29,7 @@ namespace QFXparser
         public decimal Units { get; set; }
 
         public decimal UnitPrice { get; set; }
-        public int UniqueId { get; set; }
+        public string UniqueId { get; set; }
         public string UniqueIdType { get; set; }
 
     }
@@ -41,5 +41,24 @@ namespace QFXparser
        
         public DateTime SettleDate { get; set; }
 
+    }
+    public class FundInfo
+    {
+        
+        public decimal UnitPrice { get; set; }
+        
+        public string UniqueId { get; set; }
+      
+        public string UniqueIdType { get; set; }
+       
+        public string FiId { get; set; }
+       
+        public string Name { get; set; }
+      
+        public string Ticker { get; set; }
+       
+        public string Memo { get; set; }
+      
+        public string FundType { get; set; }
     }
 }

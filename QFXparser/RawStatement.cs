@@ -17,5 +17,7 @@ namespace QFXparser
         public RawLedgerBalance LedgerBalance { get; set; } = new RawLedgerBalance();
         [NodeName("INVTRANLIST")]
         public ICollection<RawReinvestTransaction> ReinvTransactions { get; set; } = new List<RawReinvestTransaction>();
+        [NodeName("SECLIST")]
+        public ICollection<RawSecurity> SecurityList { get; set; } = new List<RawSecurity>();
     }
 }

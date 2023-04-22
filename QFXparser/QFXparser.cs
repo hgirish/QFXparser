@@ -13,6 +13,7 @@ namespace QFXparser
         private readonly CultureInfo _cultureInfo = CultureInfo.CurrentCulture;
         bool isRawTransaction = false;
         bool isRawReinvestTransaction = false;
+        bool isRawSecurity = false;
         /// <summary>
         /// Initialize a FileParser with UTF-8 encoding and
         /// current culture info.
@@ -101,7 +102,22 @@ namespace QFXparser
                 };
                 statement.ReinvestTransactions.Add(reinvest);
             }
+            foreach (var item in rawStatement.SecurityList)
+            {
+                FundInfo fundInfo = new FundInfo
+                {
+                    FiId = item.FiId,
+                    FundType = item.FundType,
+                    Memo = item.Memo,
+                    Name = item.Name,
+                    Ticker = item.Ticker,
+                    UniqueId = item.UniqueId,
+                    UniqueIdType = item.UniqueIdType,
+                    UnitPrice = item.UnitPrice,
 
+                };
+                statement.FundInfos.Add(fundInfo);
+            }
             statement.LedgerBalance = new LedgerBalance
             {
                 Amount = rawStatement.LedgerBalance.Amount,
@@ -117,7 +133,8 @@ namespace QFXparser
             MemberInfo currentMember = null;
             RawTransaction _currentTransaction = null;
             RawReinvestTransaction rawReinvestTransaction = null;
-           
+            RawSecurity currentSecurity = null;
+
             foreach (var token in Parser.Parse(_fileText))
             {
                 if (token.IsElement)
@@ -125,14 +142,23 @@ namespace QFXparser
                     if (token.Content == "BANKTRANLIST")
                     {
                         isRawReinvestTransaction = false;
+                        isRawSecurity = false;
                         isRawTransaction = true;
+                        
                     }
                     if (token.Content == "INVTRANLIST")
                     {
                         isRawReinvestTransaction = true;
                         isRawTransaction = false;
+                        isRawSecurity = false;
                     }
-                    var result = GetPropertyInfo(token.Content, isRawTransaction, isRawReinvestTransaction);
+                    if (token.Content == "SECLIST")
+                    {
+                        isRawReinvestTransaction = false;
+                        isRawTransaction = false;
+                        isRawSecurity = true;
+                    }
+                    var result = GetPropertyInfo(token.Content);
                     if (result != null)
                     {
                         switch (result.Type)
@@ -159,6 +185,14 @@ namespace QFXparser
                                 _statement.ReinvTransactions.Add(rawReinvestTransaction);
                                 rawReinvestTransaction = null;
                                 break;
+                            case NodeType.SecurityListOpen:
+                                currentSecurity = new RawSecurity();
+
+                                break;
+                            case NodeType.SecurityListClose:
+                                _statement.SecurityList.Add(currentSecurity);
+                                currentSecurity = null;
+                                break;
                             case NodeType.StatementProp:
                                 if (_statement == null)
                                 {
@@ -170,6 +204,9 @@ namespace QFXparser
                                 currentMember = result.Member;
                                 break;
                             case NodeType.ReinvestTransactionProp:
+                                currentMember = result.Member;
+                                break;
+                            case NodeType.SecurityListProp:
                                 currentMember = result.Member;
                                 break;
                             case NodeType.LedgerBalanceOpen:
@@ -219,6 +256,13 @@ namespace QFXparser
                                 }
 
                                 break;
+                            case "RawSecurity":
+                                if (currentSecurity != null)
+                                {
+                                    property.SetValue(currentSecurity, ConvertQfxType(token.Content, property.PropertyType));
+                                }
+
+                                break;
                             case "RawLedgerBalance":
                                 property.SetValue(_ledgerBalance, ConvertQfxType(token.Content, property.PropertyType));
                                 break;
@@ -253,7 +297,7 @@ namespace QFXparser
             return result;
         }
 
-        private PropertyResult GetPropertyInfo(string token, bool isRawTransaction, bool isRawReinvestTransaction)
+        private PropertyResult GetPropertyInfo(string token)
         {
             var propertyResult = new PropertyResult();
 
@@ -282,7 +326,15 @@ namespace QFXparser
                     return propertyResult;
                 } 
             }
-
+            if (isRawSecurity)
+            {
+                if (typeof(RawSecurity).GetCustomAttribute<NodeNameAttribute>().CloseTag == token)
+                {
+                    propertyResult.Member = typeof(RawSecurity);
+                    propertyResult.Type = NodeType.SecurityListClose;
+                    return propertyResult;
+                }
+            }
             if (typeof(RawStatement).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
             {
                 propertyResult.Member = typeof(RawStatement);
@@ -308,6 +360,15 @@ namespace QFXparser
                     return propertyResult;
                 } 
             }
+            if (isRawSecurity)
+            {
+                if (typeof(RawSecurity).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
+                {
+                    propertyResult.Member = typeof(RawSecurity);
+                    propertyResult.Type = NodeType.SecurityListOpen;
+                    return propertyResult;
+                }
+            }
             if (typeof(RawLedgerBalance).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
             {
                 propertyResult.Member = typeof(RawLedgerBalance);
@@ -331,7 +392,7 @@ namespace QFXparser
                 return propertyResult;
             }
 
-            if (isRawTransaction || !isRawReinvestTransaction)
+            if (isRawTransaction || (!isRawReinvestTransaction && !isRawSecurity) )
             {
                 var transactionMember = typeof(RawTransaction).GetProperties().Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
                  .FirstOrDefault(m => m.GetCustomAttribute<NodeNameAttribute>().OpenTag == token);
@@ -343,7 +404,7 @@ namespace QFXparser
                     return propertyResult;
                 } 
             }
-            if (isRawReinvestTransaction || !isRawTransaction)
+            if (isRawReinvestTransaction || (!isRawTransaction && !isRawSecurity))
             {
                 var reinvestTransactionMember = typeof(RawReinvestTransaction).GetProperties()
                         .Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
@@ -356,7 +417,19 @@ namespace QFXparser
                     return propertyResult;
                 } 
             }
+            if (isRawSecurity)
+            {
+                var securityInfo = typeof(RawSecurity).GetProperties()
+                       .Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
+                      .FirstOrDefault(m => m.GetCustomAttribute<NodeNameAttribute>().OpenTag == token);
 
+                if (securityInfo != null)
+                {
+                    propertyResult.Member = securityInfo;
+                    propertyResult.Type = NodeType.SecurityListProp;
+                    return propertyResult;
+                }
+            }
             var balanceMember = typeof(RawLedgerBalance).GetProperties().Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
                 .FirstOrDefault(m => m.GetCustomAttribute<NodeNameAttribute>().OpenTag == token);
 

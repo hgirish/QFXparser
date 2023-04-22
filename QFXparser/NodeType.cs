@@ -18,5 +18,14 @@ namespace QFXparser
         ReinvestTransactionOpen,
         ReinvestTransactionClose,
         ReinvestTransactionProp,
+        SecurityListOpen,
+        SecurityListClose,
+        SecurityListProp,
+    }
+    internal enum TransactionType
+    {
+        Transaction,
+        Reinvest,
+        Security,
     }
 }
