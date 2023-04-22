@@ -66,7 +66,9 @@ namespace QFXparser
 
             Statement statement = new Statement
             {
-                AccountNum = rawStatement.AccountNum
+                AccountNum = rawStatement.AccountNum,
+                Organization = rawStatement.Organization,
+                Fid = rawStatement.Fid,
             };
 
             foreach (var rawTrans in rawStatement.Transactions)

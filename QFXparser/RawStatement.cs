@@ -9,6 +9,10 @@ namespace QFXparser
     {
         [NodeName("ACCTID")]
         public string AccountNum { get; set; }
+        [NodeName("ORG")]
+        public string Organization { get; set; }
+        [NodeName("FID")]
+        public string Fid { get; set; }
 
         [NodeName("BANKTRANLIST")]
         public ICollection<RawTransaction> Transactions { get; set; } = new List<RawTransaction>();
@@ -19,5 +23,7 @@ namespace QFXparser
         public ICollection<RawReinvestTransaction> ReinvTransactions { get; set; } = new List<RawReinvestTransaction>();
         [NodeName("SECLIST")]
         public ICollection<RawSecurity> SecurityList { get; set; } = new List<RawSecurity>();
+        
+
     }
 }

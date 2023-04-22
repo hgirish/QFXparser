@@ -87,5 +87,13 @@ namespace QFXparser
         [NodeName("MFTYPE")]
         public string FundType { get; set; }
     }
+    [NodeName("SONRS", "/SONRS")]
+    internal class RawOrganization
+    {
+        [NodeName("ORG")]
+        public string Name { get; set; }
+        [NodeName("FID")]
+        public string Fid { get; set; }
 
+    }
 }
