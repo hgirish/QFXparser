@@ -14,7 +14,7 @@ namespace QFXparser.TestApp
 
             Console.WriteLine("Starting to parse...");
             Statement result = parser.BuildStatement();
-            var str = JsonConvert.SerializeObject(result);
+            var str = JsonConvert.SerializeObject(result, Formatting.Indented);
             Console.WriteLine(str);
             Console.ReadLine();
         }

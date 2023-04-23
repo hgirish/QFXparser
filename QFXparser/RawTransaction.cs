@@ -65,6 +65,8 @@ namespace QFXparser
         public DateTime TradeDate { get; set; }
         [NodeName("DTSETTLE")]
         public DateTime SettleDate { get; set; }
+        [NodeName("MEMO")]
+        public string Memo { get; set; }
 
     }
     [NodeName("MFINFO", "/MFINFO")]
@@ -113,6 +115,35 @@ namespace QFXparser
         public string Name { get; set; }
         [NodeName("FID")]
         public string Fid { get; set; }
+
+    }
+    [NodeName("INVPOS","/INVPOS")]
+    internal class RawPosition
+    {
+        [NodeName("UNIQUEID")]
+        public string UniqueId { get; set; }
+        [NodeName("UNIQUEIDTYPE")]
+        public string UniqueIdType { get; set; }
+        [NodeName("HELDINACCT")]
+        public string SubAccountType { get; set; }
+        [NodeName("POSTYPE")]
+        public string PositionType { get; set; }
+        [NodeName("UNITS")]
+        public decimal Units { get; set; }
+        [NodeName("UNITPRICE")]
+        public decimal UnitPrice { get; set; }
+        [NodeName("MKTVAL")]
+        public decimal MarketValue { get; set; }
+        [NodeName("AVGCOSTBASIS")]
+        public decimal AverageCostBasis { get; set; }
+        [NodeName("DTPRICEASOF")]
+        public DateTime PriceAsOf { get; set; }
+        [NodeName("CURRENCY")]
+        public string Currency { get; set; }
+        [NodeName("MEMO")]
+        public string Memo { get; set; }
+        [NodeName("INV401KSOURCE")]
+        public string SourceOfMoney { get; set; }
 
     }
 }

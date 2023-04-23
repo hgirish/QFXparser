@@ -24,6 +24,9 @@ namespace QFXparser
         StockOpen,
         StockClose,
         StockProp,
+        PositionOpen,
+        PositionClose,
+        PositionProp,
     }
     internal enum TransactionType
     {
@@ -32,5 +35,6 @@ namespace QFXparser
         Reinvest,
         Security,
         Stock,
+        Position,
     }
 }

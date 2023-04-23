@@ -25,6 +25,7 @@ namespace QFXparser
         public ICollection<RawSecurity> SecurityList { get; set; } = new List<RawSecurity>();
         [NodeName("SECLIST")]
         public ICollection<RawStock> StockList { get; set; } = new List<RawStock>();
-
+        [NodeName("INVPOSLIST")]
+        public ICollection<RawPosition> PositionList { get; set; } = new List<RawPosition>();
     }
 }

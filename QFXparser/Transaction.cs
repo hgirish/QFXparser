@@ -61,4 +61,21 @@ namespace QFXparser
       
         public string FundType { get; set; }
     }
+
+    public class Position
+    {
+        public string UniqueId { get; set; }
+        public string UniqueIdType { get; set; }
+        public string SubAccountType { get; set; }
+        public string PositionType { get; set; }
+        public decimal Units { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal MarketValue { get; set; }
+        public decimal AverageCostBasis { get; set; }
+        public DateTime PriceAsOf { get; set; }
+        public string Currency { get; set; }
+        public string Memo { get; set; }
+        public string SourceOfMoney { get; set; }
+
+    }
 }
