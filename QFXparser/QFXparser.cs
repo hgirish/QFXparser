@@ -14,6 +14,7 @@ namespace QFXparser
         bool isRawTransaction = false;
         bool isRawReinvestTransaction = false;
         bool isRawSecurity = false;
+        TransactionType _transactionType = TransactionType.Unknown;
         /// <summary>
         /// Initialize a FileParser with UTF-8 encoding and
         /// current culture info.
@@ -120,6 +121,22 @@ namespace QFXparser
                 };
                 statement.FundInfos.Add(fundInfo);
             }
+            foreach (var item in rawStatement.StockList)
+            {
+                FundInfo fundInfo = new FundInfo
+                {
+                    FiId = item.FiId,
+                    FundType = "Stock",
+                    Memo = string.Empty,
+                    Name = item.Name,
+                    Ticker = item.Ticker,
+                    UniqueId = item.UniqueId,
+                    UniqueIdType = item.UniqueIdType,
+                    UnitPrice = item.UnitPrice,
+
+                };
+                statement.FundInfos.Add(fundInfo);
+            }
             statement.LedgerBalance = new LedgerBalance
             {
                 Amount = rawStatement.LedgerBalance.Amount,
@@ -136,6 +153,7 @@ namespace QFXparser
             RawTransaction _currentTransaction = null;
             RawReinvestTransaction rawReinvestTransaction = null;
             RawSecurity currentSecurity = null;
+            RawStock currentStock = null;
 
             foreach (var token in Parser.Parse(_fileText))
             {
@@ -146,6 +164,7 @@ namespace QFXparser
                         isRawReinvestTransaction = false;
                         isRawSecurity = false;
                         isRawTransaction = true;
+                        _transactionType = TransactionType.Transaction;
                         
                     }
                     if (token.Content == "INVTRANLIST")
@@ -153,12 +172,21 @@ namespace QFXparser
                         isRawReinvestTransaction = true;
                         isRawTransaction = false;
                         isRawSecurity = false;
+                        _transactionType = TransactionType.Reinvest;
                     }
-                    if (token.Content == "SECLIST")
+                    if (token.Content == "MFINFO")
                     {
                         isRawReinvestTransaction = false;
                         isRawTransaction = false;
                         isRawSecurity = true;
+                        _transactionType = TransactionType.Security;
+                    }
+                    if (token.Content == "STOCKINFO")
+                    {
+                        isRawReinvestTransaction = false;
+                        isRawTransaction = false;
+                        isRawSecurity = false;
+                        _transactionType = TransactionType.Stock;
                     }
                     var result = GetPropertyInfo(token.Content);
                     if (result != null)
@@ -170,7 +198,6 @@ namespace QFXparser
                                 break;
                             case NodeType.StatementClose:
                                 return _statement;
-                                break;
                             case NodeType.TransactionOpen:
                                 _currentTransaction = new RawTransaction();
                                
@@ -191,9 +218,17 @@ namespace QFXparser
                                 currentSecurity = new RawSecurity();
 
                                 break;
+                           
                             case NodeType.SecurityListClose:
                                 _statement.SecurityList.Add(currentSecurity);
                                 currentSecurity = null;
+                                break;
+                            case NodeType.StockOpen:
+                                currentStock = new RawStock();
+                                break;
+                                case NodeType.StockClose:
+                                    _statement.StockList.Add(currentStock);
+                                currentStock = null;
                                 break;
                             case NodeType.StatementProp:
                                 if (_statement == null)
@@ -209,6 +244,9 @@ namespace QFXparser
                                 currentMember = result.Member;
                                 break;
                             case NodeType.SecurityListProp:
+                                currentMember = result.Member;
+                                break;
+                            case NodeType.StockProp:
                                 currentMember = result.Member;
                                 break;
                             case NodeType.LedgerBalanceOpen:
@@ -264,6 +302,12 @@ namespace QFXparser
                                     property.SetValue(currentSecurity, ConvertQfxType(token.Content, property.PropertyType));
                                 }
 
+                                break;
+                            case "RawStock":
+                                if (currentStock != null)
+                                {
+                                    property.SetValue(currentStock, ConvertQfxType(token.Content, property.PropertyType));                                     
+                                }
                                 break;
                             case "RawLedgerBalance":
                                 property.SetValue(_ledgerBalance, ConvertQfxType(token.Content, property.PropertyType));
@@ -334,6 +378,21 @@ namespace QFXparser
                 {
                     propertyResult.Member = typeof(RawSecurity);
                     propertyResult.Type = NodeType.SecurityListClose;
+                    return propertyResult;
+                }
+            }
+            if (_transactionType == TransactionType.Stock)
+            {
+                if (typeof(RawStock).GetCustomAttribute<NodeNameAttribute>().CloseTag == token)
+                {
+                    propertyResult.Member = typeof(RawStock);
+                    propertyResult.Type = NodeType.StockClose;
+                    return propertyResult;
+                }
+                if (typeof(RawStock).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
+                {
+                    propertyResult.Member = typeof(RawStock);
+                    propertyResult.Type = NodeType.StockOpen;
                     return propertyResult;
                 }
             }
@@ -429,6 +488,19 @@ namespace QFXparser
                 {
                     propertyResult.Member = securityInfo;
                     propertyResult.Type = NodeType.SecurityListProp;
+                    return propertyResult;
+                }
+            }
+            if (_transactionType == TransactionType.Stock)
+            {
+                var stockInfo = typeof(RawStock).GetProperties()
+                    .Where(m => m.GetCustomAttribute<NodeNameAttribute>() != null)
+                    .FirstOrDefault(m=> m.GetCustomAttribute<NodeNameAttribute>().OpenTag == token);
+
+                if (stockInfo != null)
+                {
+                    propertyResult.Member = stockInfo;
+                    propertyResult.Type = NodeType.StockProp;
                     return propertyResult;
                 }
             }

@@ -21,11 +21,16 @@ namespace QFXparser
         SecurityListOpen,
         SecurityListClose,
         SecurityListProp,
+        StockOpen,
+        StockClose,
+        StockProp,
     }
     internal enum TransactionType
     {
+        Unknown,
         Transaction,
         Reinvest,
         Security,
+        Stock,
     }
 }

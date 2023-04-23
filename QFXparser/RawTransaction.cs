@@ -87,6 +87,25 @@ namespace QFXparser
         [NodeName("MFTYPE")]
         public string FundType { get; set; }
     }
+    [NodeName("STOCKINFO", "/STOCKINFO")]
+    internal class RawStock
+    {
+
+        [NodeName("UNITPRICE")]
+        public decimal UnitPrice { get; set; }
+        [NodeName("UNIQUEID")]
+        public string UniqueId { get; set; }
+        [NodeName("UNIQUEIDTYPE")]
+        public string UniqueIdType { get; set; }
+        [NodeName("FIID")]
+        public string FiId { get; set; }
+        [NodeName("SECNAME")]
+        public string Name { get; set; }
+        [NodeName("TICKER")]
+        public string Ticker { get; set; }
+
+        
+    }
     [NodeName("SONRS", "/SONRS")]
     internal class RawOrganization
     {
