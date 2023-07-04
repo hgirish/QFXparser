@@ -2,6 +2,7 @@
 
 namespace QFXparser
 {
+   // [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
     internal class NodeNameAttribute : Attribute
     {
         private string _openTag;
@@ -28,5 +29,6 @@ namespace QFXparser
                 return _closeTag;
             }
         }
+        public override object TypeId { get { return this; } }
     }
 }

@@ -28,7 +28,34 @@ namespace QFXparser
         [NodeName("MEMO")]
         public string Memo { get; set; }
     }
-    [NodeName("REINVEST","/REINVEST")]
+ // [NodeName("INCOME","/INCOME")]
+    internal class RawIncomeTransaction
+    {
+        [NodeName("FITID")]
+        public string TransactionId { get; set; }
+        [NodeName("DTTRADE")]
+        public DateTime TradeDate { get; set; }
+        [NodeName("DTSETTLE")]
+        public DateTime SettleDate { get; set; }
+        [NodeName("MEMO")]
+        public string Memo { get; set; }
+        [NodeName("INCOMETYPE")]
+        public string IncomeType { get; set; }
+        [NodeName("TOTAL")]
+        public decimal Total { get; set; }
+        [NodeName("SUBACCTSEC")]
+        public string SubType { get; set; }
+        [NodeName("UNITS")]
+        public decimal Units { get; set; }
+        [NodeName("UNITPRICE")]
+        public decimal UnitPrice { get; set; }
+        [NodeName("UNIQUEID")]
+        public string UniqueId { get; set; }
+        [NodeName("UNIQUEIDTYPE")]
+        public string UniqueIdType { get; set; }
+    }
+    
+    [NodeName("REINVEST, INCOME","/REINVEST, /INCOME")]
     internal class RawReinvestTransaction
     {
        

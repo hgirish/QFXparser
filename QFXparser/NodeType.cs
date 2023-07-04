@@ -33,6 +33,7 @@ namespace QFXparser
         Unknown,
         Transaction,
         Reinvest,
+        Income,
         Security,
         Stock,
         Position,

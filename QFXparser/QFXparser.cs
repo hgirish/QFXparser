@@ -12,7 +12,8 @@ namespace QFXparser
         private RawLedgerBalance _ledgerBalance;
         private readonly CultureInfo _cultureInfo = CultureInfo.CurrentCulture;
         TransactionType _transactionType = TransactionType.Unknown;
-
+        string[] reinvestCloseTag = (typeof(RawReinvestTransaction).GetCustomAttribute<NodeNameAttribute>().CloseTag).Split(',');
+        string[] reinvetOpenTag = (typeof(RawReinvestTransaction).GetCustomAttribute<NodeNameAttribute>().OpenTag).Split(',');
         /// <summary>
         /// Initialize a FileParser with UTF-8 encoding and
         /// current culture info.
@@ -169,6 +170,8 @@ namespace QFXparser
             MemberInfo currentMember = null;
             RawTransaction _currentTransaction = null;
             RawReinvestTransaction rawReinvestTransaction = null;
+            RawIncomeTransaction rawIncomeTransaction = null;
+
             RawSecurity currentSecurity = null;
             RawStock currentStock = null;
             RawPosition currentPosition = null;
@@ -399,13 +402,17 @@ namespace QFXparser
             
             if (_transactionType == TransactionType.Reinvest)
             {
-                if (typeof(RawReinvestTransaction).GetCustomAttribute<NodeNameAttribute>().CloseTag == token)
+                
+                
+                if (reinvestCloseTag.Any( x=> x.Trim() == token))
                 {
                     propertyResult.Member = typeof(RawReinvestTransaction);
                     propertyResult.Type = NodeType.ReinvestTransactionClose;
                     return propertyResult;
                 }
-                if (typeof(RawReinvestTransaction).GetCustomAttribute<NodeNameAttribute>().OpenTag == token)
+
+                
+                if (reinvetOpenTag.Any(x => x.Trim() == token))
                 {
                     propertyResult.Member = typeof(RawReinvestTransaction);
                     propertyResult.Type = NodeType.ReinvestTransactionOpen;
